@@ -29,8 +29,9 @@ var mediCalDispensingFee = "$7.25";
 var subtotalAsInt;
 var subtotal;
 var finalPrice;
+var arrayOfCleanValues;
 
-request.post({
+function requestData() { request.post({
     url: 'https://www.dir.ca.gov/dwc/pharmfeesched/pfs.asp',
     form: {
         NDCno: nDCNumber,
@@ -41,6 +42,7 @@ request.post({
     },
     function (err, httpResponse, body) {
 
+        arrayOfCleanValues = [];
         var myLongString = httpResponse.body;
         var myTables = myLongString.split("class=\"tabborder\"");
         var myRows = [];
@@ -53,15 +55,14 @@ request.post({
         // 0 to 6
         for (var x = 0; x < itemsInSecondRow.length; x++)
         {
-            console.log(x);
+            //console.log(x);
             temp = itemsInSecondRow[x].split("\r\n");
-            console.log(typeof(temp[1]));
+            //console.log(typeof(temp[1]));
             secondaryTemp.push(temp[1]);
             
         }
 
         var thirdTemp;
-        var arrayOfCleanValues = [];
         for (var x = 1; x < secondaryTemp.length; x++)
         {
             thirdTemp = secondaryTemp[x].trim();
@@ -87,8 +88,9 @@ request.post({
         }
         arrayOfCleanValues.push(finalPrice);
         
-        console.log(arrayOfCleanValues);
+        //console.log(arrayOfCleanValues);
 
+        /*
         app.get('/', function(req, res) {
             var newArrayForRender = arrayOfCleanValues;
 
@@ -96,14 +98,54 @@ request.post({
                 newArrayForRender : newArrayForRender
             });
         });
+        */
 
         db.get('posts')
             .push({ output: arrayOfCleanValues })
             .write()
 
-
+        console.log("here");
     })
+}
+
+requestData();
 
 //document.getElementById('firstBox').value = arrayOfCleanValues;
+app.get('/', function(req, res) {
+    console.log("app was got");
+    
+    //res.send('OK');
+    newArrayForRender = arrayOfCleanValues;
+    res.render('pages/index', {
+        newArrayForRender
+    });
+
+    requestData();
+});
+
+/*
+app.get('/output', function(req, res) {
+    console.log("posted and switching to output page")
+    
+    res.render('pages/output');
+});
+*/
+
+/*
+function buttonClick() {
+    console.log("button clicked");
+    //document.getElementById('demo').innerHTML = "worked";
+    requestData();
+}
+*/
+
+/*
+app.post('/', function(req, res) {
+    console.log("posted my button");
+
+    buttonClick();
+});
+*/
 
 app.listen(8080);
+
